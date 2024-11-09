@@ -32,6 +32,9 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 ### Public admin
 admin-web5.vercel.app
 
+### Host Backend public
+https://be-up-host.onrender.com
+
 ### Cấu trúc thư mục
 ```
 src
