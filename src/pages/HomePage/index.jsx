@@ -1,24 +1,124 @@
 import React, { useEffect, useState } from 'react';
-import "../../assets/css/sb-admin-2.min.css"
-import DashboardApi from '../../api/Dashboard'; 
+import "../../assets/css/sb-admin-2.min.css";
+import DashboardApi from '../../api/Dashboard';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function HomePage() {
-
     const [userCount, setUserCount] = useState(0);
+    const [gameCount, setGameCount] = useState(0);
+    const [chartData, setChartData] = useState({
+        labels: ['Dưới 18', '18-21', 'Trên 21'],
+        datasets: [{
+            data: [0, 0, 0],
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }]
+    });
 
     useEffect(() => {
-        // Gọi API lấy số lượng người dùng
-        const fetchUserCount = async () => {
+        const fetchData = async () => {
             try {
-                const response = await DashboardApi.getAllUser().getCount(); // Kiểm tra đúng tên phương thức trong API
-                setUserCount(response.data.meta.total_users); // Giả sử API trả về dữ liệu theo cấu trúc này
+                const response = await DashboardApi.getAllUser();
+                const users = response.data.data;
+                
+                const ageGroups = {
+                    under18: 0,
+                    age18to21: 0,
+                    over21: 0
+                };
+    
+                users.forEach(user => {
+                    if (user.dob) {
+                        const birthDate = new Date(user.dob);
+                        const age = new Date().getFullYear() - birthDate.getFullYear();
+                        
+                        if (age < 18) ageGroups.under18++;
+                        else if (age >= 18 && age <= 21) ageGroups.age18to21++;
+                        else ageGroups.over21++;
+                    }
+                });
+
+                setChartData({
+                    ...chartData,
+                    datasets: [{
+                        ...chartData.datasets[0],
+                        data: [ageGroups.under18, ageGroups.age18to21, ageGroups.over21]
+                    }]
+                });
+                
+                setUserCount(users.length);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         };
-        
-        fetchUserCount(); // Gọi hàm này trong useEffect
-    }, []); // Chạy một lần khi component mount
+
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        // Fetch total users
+        const fetchTotalUsers = async () => {
+            try {
+                const response = await DashboardApi.getAllUser();
+                // Check different possible response structures
+                if (response.data) {
+                    if (typeof response.data.count === 'number') {
+                        setUserCount(response.data.count);
+                    } else if (Array.isArray(response.data)) {
+                        setUserCount(response.data.length);
+                    } else if (Array.isArray(response.data.data)) {
+                        setUserCount(response.data.data.length);
+                    } else {
+                        console.error('Unexpected response structure:', response.data);
+                        setUserCount(0);
+                    }
+                } else {
+                    console.error('No data in response:', response);
+                    setUserCount(0);
+                }
+            } catch (error) {
+                console.error('Error fetching total users:', error);
+                setUserCount(0);
+            }
+        };
+
+        // Fetch total games
+        const fetchGamesCount = async () => {
+            try {
+                const response = await DashboardApi.getAllGames();
+                // Add logging to debug the response
+                console.log('Games response:', response);
+                
+                // Handle different possible response structures
+                if (response.data) {
+                    if (Array.isArray(response.data)) {
+                        setGameCount(response.data.length);
+                    } else if (Array.isArray(response.data.data)) {
+                        setGameCount(response.data.data.length);
+                    } else if (typeof response.data.count === 'number') {
+                        setGameCount(response.data.count);
+                    } else {
+                        console.error('Unexpected response structure:', response.data);
+                        setGameCount(0);
+                    }
+                } else {
+                    console.error('No data in response:', response);
+                    setGameCount(0);
+                }
+            } catch (error) {
+                console.error('Error fetching total games:', error);
+                setGameCount(0);
+            }
+        };
+
+        fetchTotalUsers();
+        fetchGamesCount();
+    }, []);
     
 
     return (
@@ -227,7 +327,7 @@ export default function HomePage() {
                                                 Tổng người chơi
                                             </div>
                                             <div className="h5 mb-0 font-weight-bold text-gray-800">
-                                                 {userCount} {/* Hiển thị tổng số người chơi từ API */}
+                                                 {userCount.toLocaleString()} 
                                             </div>
                                         </div>
                                         <div className="col-auto">
@@ -247,7 +347,7 @@ export default function HomePage() {
                                                 Tổng số game
                                             </div>
                                             <div className="h5 mb-0 font-weight-bold text-gray-800">
-                                                $215,000
+                                                {gameCount}
                                             </div>
                                         </div>
                                         <div className="col-auto">
@@ -405,7 +505,27 @@ export default function HomePage() {
                                 {/* Card Body */}
                                 <div className="card-body">
                                     <div className="chart-pie pt-4 pb-2">
-                                        <canvas id="myPieChart" />
+                                        <Pie
+                                            data={chartData}
+                                            options={{
+                                                maintainAspectRatio: false,
+                                                tooltips: {
+                                                    backgroundColor: "rgb(255,255,255)",
+                                                    bodyFontColor: "#858796",
+                                                    borderColor: '#dddfeb',
+                                                    borderWidth: 1,
+                                                    xPadding: 15,
+                                                    yPadding: 15,
+                                                    displayColors: false,
+                                                    caretPadding: 10,
+                                                },
+                                                legend: {
+                                                    display: true,
+                                                    position: 'bottom'
+                                                },
+                                                cutout: '80%',
+                                            }}
+                                        />
                                     </div>
                                     <div className="mt-4 text-center small">
                                         <span className="mr-2">
@@ -448,4 +568,5 @@ export default function HomePage() {
         </div>
 
     )
+
 }
