@@ -29,6 +29,35 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+### Public admin
+admin-web5.vercel.app
+
+### Host Backend public
+https://be-up-host.onrender.com
+
+### Cấu trúc thư mục
+```
+src
+|__ config
+|  |__ index.js
+|__ assets
+|  |__ index.js
+|__ controllers
+|  |__ adminController.js
+|  |__ favoritesController.js
+|  |__ gameLogsController.js
+|  |__ gamesController.js
+|  |__ scoreController.js
+|  |__ userController.js
+|__ routes
+|  |__ adminRoutes.js
+|  |__ favoritesRoutes.js
+|  |__ gameLogsRoutes.js
+|  |__ gamesRoutes.js
+|  |__ scoreRoutes.js
+|  |__ userRoutes.js
+|__ App.js
+
 ### `npm run eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can't go back!**
