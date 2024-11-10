@@ -1,151 +1,151 @@
 import React, { useEffect, useState } from 'react';
-import "../../assets/css/sb-admin-2.min.css"; // Import CSS cho giao diện trang quản lý
-import DashboardApi from '../../api/Dashboard'; // Import API để gọi dữ liệu từ backend
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'; // Import các thành phần của Chart.js
-import { Pie } from 'react-chartjs-2'; // Import biểu đồ Pie từ Chart.js
+import "../../assets/css/sb-admin-2.min.css";
+import DashboardApi from '../../api/Dashboard';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ChatTooltip, ResponsiveContainer } from 'recharts';
+import { Pie } from 'react-chartjs-2';
 
-// Đăng ký các thành phần của Chart.js để sử dụng trong ứng dụng
+// Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function HomePage() {
-    // Khai báo state cho số lượng người dùng và số lượng game
+    // Dữ liệu mẫu cho biểu đồ
+    const data = [
+        { name: 'Jan', users: 40 },
+        { name: 'Feb', users: 30 },
+        { name: 'Mar', users: 20 },
+        { name: 'Apr', users: 27 },
+        { name: 'May', users: 18 },
+        { name: 'Jun', users: 23 },
+        { name: 'Jul', users: 34 },
+    ];
     const [userCount, setUserCount] = useState(0);
     const [gameCount, setGameCount] = useState(0);
-    // Khai báo state cho dữ liệu của biểu đồ Pie
     const [chartData, setChartData] = useState({
-        labels: ['Dưới 18', '18-21', 'Trên 21'], // Nhãn cho các nhóm tuổi
+        labels: ['Dưới 18', '18-21', 'Trên 21'],
         datasets: [{
-            data: [0, 0, 0], // Dữ liệu mặc định cho các nhóm tuổi
-            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'], // Màu nền cho các phần của biểu đồ
-            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'], // Màu khi hover lên các phần
-            hoverBorderColor: "rgba(234, 236, 244, 1)", // Màu viền khi hover
+            data: [0, 0, 0],
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
         }]
     });
 
-    // Sử dụng useEffect để lấy dữ liệu từ API khi component được render lần đầu
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Gọi API lấy tất cả người dùng
                 const response = await DashboardApi.getAllUser();
-                const users = response.data.data; // Lấy dữ liệu người dùng từ response
+                const users = response.data.data;
 
-                // Khởi tạo các nhóm tuổi
                 const ageGroups = {
-                    under18: 0,  // Nhóm dưới 18 tuổi
-                    age18to21: 0,  // Nhóm từ 18 đến 21 tuổi
-                    over21: 0  // Nhóm trên 21 tuổi
+                    under18: 0,
+                    age18to21: 0,
+                    over21: 0
                 };
 
-                // Duyệt qua danh sách người dùng và phân loại theo độ tuổi
                 users.forEach(user => {
-                    if (user.dob) {  // Kiểm tra nếu có ngày sinh
-                        const birthDate = new Date(user.dob);  // Chuyển ngày sinh thành đối tượng Date
-                        const age = new Date().getFullYear() - birthDate.getFullYear();  // Tính tuổi
+                    if (user.dob) {
+                        const birthDate = new Date(user.dob);
+                        const age = new Date().getFullYear() - birthDate.getFullYear();
 
-                        // Phân loại theo độ tuổi
                         if (age < 18) ageGroups.under18++;
                         else if (age >= 18 && age <= 21) ageGroups.age18to21++;
                         else ageGroups.over21++;
                     }
                 });
 
-                // Cập nhật lại dữ liệu cho biểu đồ Pie
                 setChartData({
                     ...chartData,
                     datasets: [{
                         ...chartData.datasets[0],
-                        data: [ageGroups.under18, ageGroups.age18to21, ageGroups.over21]  // Cập nhật dữ liệu nhóm tuổi
+                        data: [ageGroups.under18, ageGroups.age18to21, ageGroups.over21]
                     }]
                 });
 
-                // Cập nhật số lượng người dùng
                 setUserCount(users.length);
             } catch (error) {
-                console.error('Error fetching user data:', error);  // Xử lý lỗi khi gọi API
+                console.error('Error fetching user data:', error);
             }
         };
 
         fetchData();
-    }, []);  // useEffect chỉ chạy 1 lần khi component được render lần đầu
+    }, []);
 
     useEffect(() => {
-        // Hàm lấy tổng số người dùng
+        // Fetch total users
         const fetchTotalUsers = async () => {
             try {
-                const response = await DashboardApi.getAllUser();  // Gọi API lấy người dùng
-                // Kiểm tra cấu trúc phản hồi và xử lý tùy theo dạng dữ liệu trả về
+                const response = await DashboardApi.getAllUser();
+                // Check different possible response structures
                 if (response.data) {
                     if (typeof response.data.count === 'number') {
-                        setUserCount(response.data.count);  // Nếu response chứa count, lấy giá trị đó
+                        setUserCount(response.data.count);
                     } else if (Array.isArray(response.data)) {
-                        setUserCount(response.data.length);  // Nếu response là mảng, lấy độ dài
+                        setUserCount(response.data.length);
                     } else if (Array.isArray(response.data.data)) {
-                        setUserCount(response.data.data.length);  // Nếu response có trường data là mảng, lấy độ dài
+                        setUserCount(response.data.data.length);
                     } else {
-                        console.error('Unexpected response structure:', response.data);  // Xử lý khi cấu trúc dữ liệu không mong muốn
-                        setUserCount(0);  // Đặt lại số lượng người dùng về 0
+                        console.error('Unexpected response structure:', response.data);
+                        setUserCount(0);
                     }
                 } else {
-                    console.error('No data in response:', response);  // Nếu không có dữ liệu trong response
-                    setUserCount(0);  // Đặt lại số lượng người dùng về 0
+                    console.error('No data in response:', response);
+                    setUserCount(0);
                 }
             } catch (error) {
-                console.error('Error fetching total users:', error);  // Xử lý lỗi khi gọi API
-                setUserCount(0);  // Đặt lại số lượng người dùng về 0 nếu có lỗi
+                console.error('Error fetching total users:', error);
+                setUserCount(0);
             }
         };
 
-        // Hàm lấy tổng số game
+        // Fetch total games
         const fetchGamesCount = async () => {
             try {
-                const response = await DashboardApi.getAllGames();  // Gọi API lấy game
-                console.log('Games response:', response);  // In ra phản hồi để kiểm tra dữ liệu
+                const response = await DashboardApi.getAllGames();
+                // Add logging to debug the response
+                console.log('Games response:', response);
 
-                // Xử lý phản hồi tùy theo cấu trúc dữ liệu trả về
+                // Handle different possible response structures
                 if (response.data) {
                     if (Array.isArray(response.data)) {
-                        setGameCount(response.data.length);  // Nếu response là mảng, lấy độ dài
+                        setGameCount(response.data.length);
                     } else if (Array.isArray(response.data.data)) {
-                        setGameCount(response.data.data.length);  // Nếu response có trường data là mảng, lấy độ dài
+                        setGameCount(response.data.data.length);
                     } else if (typeof response.data.count === 'number') {
-                        setGameCount(response.data.count);  // Nếu response chứa count, lấy giá trị đó
+                        setGameCount(response.data.count);
                     } else {
-                        console.error('Unexpected response structure:', response.data);  // Xử lý khi cấu trúc dữ liệu không mong muốn
-                        setGameCount(0);  // Đặt lại số lượng game về 0
+                        console.error('Unexpected response structure:', response.data);
+                        setGameCount(0);
                     }
                 } else {
-                    console.error('No data in response:', response);  // Nếu không có dữ liệu trong response
-                    setGameCount(0);  // Đặt lại số lượng game về 0
+                    console.error('No data in response:', response);
+                    setGameCount(0);
                 }
             } catch (error) {
-                console.error('Error fetching total games:', error);  // Xử lý lỗi khi gọi API
-                setGameCount(0);  // Đặt lại số lượng game về 0 nếu có lỗi
+                console.error('Error fetching total games:', error);
+                setGameCount(0);
             }
         };
 
-        fetchTotalUsers();  // Gọi hàm lấy tổng số người dùng
-        fetchGamesCount();  // Gọi hàm lấy tổng số game
-    }, []);  // useEffect chỉ chạy 1 lần khi component được render lần đầu
+        fetchTotalUsers();
+        fetchGamesCount();
+    }, []);
 
 
     return (
         <div id="content-wrapper" className="d-flex flex-column">
-            {/* Nội dung chính */}
+            {/* Main Content */}
             <div id="content">
                 {/* Topbar */}
                 <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
                     {/* Sidebar Toggle (Topbar) */}
-                    {/* Nút bấm chuyển đổi sidebar khi màn hình nhỏ */}
                     <button
                         id="sidebarToggleTop"
                         className="btn btn-link d-md-none rounded-circle mr-3"
                     >
                         <i className="fa fa-bars" />
                     </button>
-
                     {/* Topbar Search */}
-                    {/* Phần thanh tìm kiếm trên topbar */}
                     <form className="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div className="input-group">
                             <input
@@ -162,12 +162,9 @@ export default function HomePage() {
                             </div>
                         </div>
                     </form>
-
                     {/* Topbar Navbar */}
-                    {/* Phần Navbar cho các mục trong topbar */}
                     <ul className="navbar-nav ml-auto">
                         {/* Nav Item - Search Dropdown (Visible Only XS) */}
-                        {/* Mục tìm kiếm dropdown, hiển thị chỉ trên màn hình nhỏ */}
                         <li className="nav-item dropdown no-arrow d-sm-none">
                             <a
                                 className="nav-link dropdown-toggle"
@@ -181,7 +178,6 @@ export default function HomePage() {
                                 <i className="fas fa-search fa-fw" />
                             </a>
                             {/* Dropdown - Messages */}
-                            {/* Menu dropdown cho tìm kiếm trên màn hình nhỏ */}
                             <div
                                 className="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
                                 aria-labelledby="searchDropdown"
@@ -204,9 +200,7 @@ export default function HomePage() {
                                 </form>
                             </div>
                         </li>
-
                         {/* Nav Item - Alerts */}
-                        {/* Mục thông báo, hiển thị biểu tượng chuông với số lượng thông báo */}
                         <li className="nav-item dropdown no-arrow mx-1">
                             <a
                                 className="nav-link dropdown-toggle"
@@ -219,17 +213,14 @@ export default function HomePage() {
                             >
                                 <i className="fas fa-bell fa-fw" />
                                 {/* Counter - Alerts */}
-                                {/* Số lượng thông báo chưa đọc */}
                                 <span className="badge badge-danger badge-counter">3+</span>
                             </a>
                             {/* Dropdown - Alerts */}
-                            {/* Menu dropdown cho thông báo */}
                             <div
                                 className="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="alertsDropdown"
                             >
                                 <h6 className="dropdown-header">Alerts Center</h6>
-                                {/* Mỗi thông báo trong dropdown */}
                                 <a className="dropdown-item d-flex align-items-center" href="#">
                                     <div className="mr-3">
                                         <div className="icon-circle bg-primary">
@@ -274,13 +265,9 @@ export default function HomePage() {
                                 </a>
                             </div>
                         </li>
-
                         {/* Nav Item - Messages */}
-                        {/* Phần phân tách giữa các mục trong menu */}
                         <div className="topbar-divider d-none d-sm-block" />
-
                         {/* Nav Item - User Information */}
-                        {/* Mục thông tin người dùng, hiển thị tên và ảnh đại diện người dùng */}
                         <li className="nav-item dropdown no-arrow">
                             <a
                                 className="nav-link dropdown-toggle"
@@ -300,7 +287,6 @@ export default function HomePage() {
                                 />
                             </a>
                             {/* Dropdown - User Information */}
-                            {/* Menu dropdown cho thông tin người dùng */}
                             <div
                                 className="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown"
@@ -327,14 +313,12 @@ export default function HomePage() {
                         </li>
                     </ul>
                 </nav>
-
                 {/* End of Topbar */}
                 {/* Begin Page Content */}
                 <div className="container-fluid">
                     {/* Page Heading */}
                     <div className="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
-                        {/* Nút tải báo cáo */}
                         <a
                             href="#"
                             className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
@@ -342,9 +326,9 @@ export default function HomePage() {
                             <i className="fas fa-download fa-sm text-white-50" /> Generate Report
                         </a>
                     </div>
-                    {/* Content Row - Dòng nội dung */}
+                    {/* Content Row */}
                     <div className="row">
-                        {/* Thẻ hiển thị tổng số người chơi */}
+                        {/* Earnings (Monthly) Card Example */}
                         <div className="col-xl-3 col-md-6 mb-4">
                             <div className="card border-left-primary shadow h-100 py-2">
                                 <div className="card-body">
@@ -364,7 +348,7 @@ export default function HomePage() {
                                 </div>
                             </div>
                         </div>
-                        {/* Thẻ hiển thị tổng số game */}
+                        {/* Earnings (Monthly) Card Example */}
                         <div className="col-xl-3 col-md-6 mb-4">
                             <div className="card border-left-success shadow h-100 py-2">
                                 <div className="card-body">
@@ -384,13 +368,14 @@ export default function HomePage() {
                                 </div>
                             </div>
                         </div>
-                        {/* Thẻ hiển thị khách đến lần đầu */}
+                        {/* Earnings (Monthly) Card Example */}
                         <div className="col-xl-3 col-md-6 mb-4">
                             <div className="card border-left-info shadow h-100 py-2">
                                 <div className="card-body">
                                     <div className="row no-gutters align-items-center">
                                         <div className="col mr-2">
                                             <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                {/* Khách đến trong 1 tháng gần nhất */}
                                                 Khách đến lần đầu
                                             </div>
                                             <div className="row no-gutters align-items-center">
@@ -420,7 +405,7 @@ export default function HomePage() {
                                 </div>
                             </div>
                         </div>
-                        {/* Thẻ hiển thị game phổ biến nhất */}
+                        {/* Pending Requests Card Example */}
                         <div className="col-xl-3 col-md-6 mb-4">
                             <div className="card border-left-warning shadow h-100 py-2">
                                 <div className="card-body">
@@ -430,7 +415,7 @@ export default function HomePage() {
                                                 Game phổ biến nhất
                                             </div>
                                             <div className="h5 mb-0 font-weight-bold text-gray-800">
-                                                18
+                                                Recycle Sokoban
                                             </div>
                                         </div>
                                         <div className="col-auto">
@@ -441,16 +426,13 @@ export default function HomePage() {
                             </div>
                         </div>
                     </div>
-                    {/* Content Row - Dòng biểu đồ */}
+                    {/* Content Row */}
                     <div className="row">
-                        {/* Biểu đồ DAU (Daily Active Users) */}
+                        {/* Area Chart */}
                         <div className="col-xl-8 col-lg-7">
                             <div className="card shadow mb-4">
-                                {/* Header của thẻ với dropdown */}
                                 <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 className="m-0 font-weight-bold text-primary">
-                                        Biểu Đồ DAU
-                                    </h6>
+                                    <h6 className="m-0 font-weight-bold text-primary">Biểu Đồ DAU</h6>
                                     <div className="dropdown no-arrow">
                                         <a
                                             className="dropdown-toggle"
@@ -481,18 +463,31 @@ export default function HomePage() {
                                         </div>
                                     </div>
                                 </div>
-                                {/* Thân của thẻ - biểu đồ */}
                                 <div className="card-body">
                                     <div className="chart-area">
-                                        <canvas id="myAreaChart" />
+                                        <ResponsiveContainer width="100%" height={400}>
+                                            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                                                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <XAxis dataKey="name" />
+                                                <YAxis />
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <Tooltip />
+                                                <Area type="monotone" dataKey="users" stroke="#8884d8" fillOpacity={1} fill="url(#colorUv)" />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {/* Biểu đồ Pie về độ tuổi */}
+                        {/* Pie Chart */}
                         <div className="col-xl-4 col-lg-5">
                             <div className="card shadow mb-4">
-                                {/* Header của thẻ với dropdown */}
+                                {/* Card Header - Dropdown */}
                                 <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                     <h6 className="m-0 font-weight-bold text-primary">
                                         Độ Tuổi
@@ -527,7 +522,7 @@ export default function HomePage() {
                                         </div>
                                     </div>
                                 </div>
-                                {/* Thân của thẻ - biểu đồ Pie */}
+                                {/* Card Body */}
                                 <div className="card-body">
                                     <div className="chart-pie pt-4 pb-2">
                                         <Pie
@@ -552,7 +547,6 @@ export default function HomePage() {
                                             }}
                                         />
                                     </div>
-                                    {/* Các chú thích độ tuổi */}
                                     <div className="mt-4 text-center small">
                                         <span className="mr-2">
                                             <i className="fas fa-circle text-primary" /> Dưới 18
@@ -570,7 +564,6 @@ export default function HomePage() {
                     </div>
                     {/* Content Row */}
                 </div>
-
                 {/* /.container-fluid */}
             </div>
             {/* End of Main Content */}
