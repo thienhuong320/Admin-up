@@ -1,10 +1,23 @@
-# Getting Started with Create React App
+# MÔN PHÁT TRIỂN ỨNG DỤNG WEB 
+Tên đề tài: Phát triển ứng dụng website trò chơi (UEH Discovery)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Mô tả
+Đây là trang admin của web game trên, đây là link trang người dùng của web trên "https://front-end-web5.vercel.app/"
 
-## Available Scripts
+Trang admin dùng để thông kê báo cáo các thông tin về người dùng, game ,... . Quản lý game và quản lý người dùng 
 
-In the project directory, you can run:
+### Link Public admin
+admin-web5.vercel.app
+
+### Host Backend public
+https://be-up-host.onrender.com
+
+## Tác giả
+- Phan Trần Thiên Hương: https://github.com/thienhuong320
+- Huỳnh Như Ngọc: https://github.com/hnhngc
+- Lê Mỹ Trúc: https://github.com/LemyTruc
+- Đồng Gia Hân: https://github.com/Storbydong
+- Nguyễn Thùy Yến Nhi: https://github.com/nhinguyen2612
 
 ### `npm start`
 
@@ -29,11 +42,7 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### Public admin
-admin-web5.vercel.app
 
-### Host Backend public
-https://be-up-host.onrender.com
 
 ### Cấu trúc thư mục
 ```
@@ -57,6 +66,13 @@ src
 |  |__ scoreRoutes.js
 |  |__ userRoutes.js
 |__ App.js
+
+```
+## Tài liệu thiết kế cơ sở dữ liệu
+https://github.com/WEB-PROJECT-5/Front_end_web5/blob/main/TailieuthietkeCSDL.md
+
+## Tài liệu thiết kế giao diện
+https://www.figma.com/design/lksAAds8IJVRZNXfKXqLzT/%C4%90%E1%BB%92-%C3%81N-WEB?node-id=0-1&node-type=canvas&t=oylEyEYoI3ahlewl-0
 
 ### `npm run eject`
 
